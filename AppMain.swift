@@ -7,6 +7,7 @@ struct ___FILEBASENAMEASIDENTIFIER___: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .preferredColorScheme(.dark)
 #if os(macOS)
                 .onDisappear{NSApplication.shared.terminate(self)}
 #else
