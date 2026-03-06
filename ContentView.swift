@@ -28,7 +28,7 @@ struct InterfaceView: View {
         HStack {
             Slider(value: $param0, in: 0.2 ... 1.0,
                    label: {Text(String(format: "Param0: %.2f", param0)).frame(width: 120)})
-            .onChange(of: param0) { new, old in
+            .onChange(of: param0) { old, new in
                 Renderer.shared.param0 = new
             }
         }
