@@ -85,8 +85,14 @@
 		<dict>
 			<key>SharedSettings</key>
 			<dict>
+				<key>INFOPLIST_KEY_UILaunchScreen_Generation</key>
+				<string>YES</string>
+				<key>SUPPORTED_PLATFORMS</key>
+				<string>iphoneos iphonesimulator macosx</string>
 				<key>SWIFT_OBJC_BRIDGING_HEADER</key>
 				<string>___PROJECTNAME___/SharedHeader.h</string>
+				<key>TARGETED_DEVICE_FAMILY</key>
+				<string>1,2</string>
 			</dict>
 		</dict>
 	</array>
