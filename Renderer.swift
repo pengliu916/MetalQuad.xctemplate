@@ -4,8 +4,7 @@ import MetalKit
 import SwiftUI
 import OSLog
 
-fileprivate var projName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? ""
-fileprivate let log = Logger(subsystem: "Renderer", category: "\(projName)")
+fileprivate let log = Logger(subsystem: "___PROJECTNAME___", category: "Renderer")
 fileprivate let frameBufCnt = 3
 fileprivate let pixelFormat = MTLPixelFormat.rgba16Float
 
