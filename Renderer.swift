@@ -58,19 +58,7 @@ class Renderer: MTKView, MTKViewDelegate {
         caMtlLayer.colorspace = colorSpace
         
         startFrameTimeStamp = CACurrentMediaTime()
-#if os(macOS)
-        NotificationCenter.default.addObserver(self, selector: #selector(self.updateEDR), name: NSApplication.didChangeScreenParametersNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(self.updateEDR), name: NSWindow.didMoveNotification, object: nil)
-#endif
-        
     }
-    
-#if os(macOS)
-    @objc
-    func updateEDR(_ notification: Notification) {
-        bufConst.fEDR = Float(NSApplication.shared.mainWindow?.screen?.maximumExtendedDynamicRangeColorComponentValue ?? 1.0)
-    }
-#endif
     
     private static func makeGPUFunc(_ lib: MTLLibrary, name: String) -> MTLFunction? {
         guard let bolb = lib.makeFunction(name: name)
@@ -109,8 +97,10 @@ class Renderer: MTKView, MTKViewDelegate {
         
         bufConst.fParam0 = param0
         bufConst.fTime = Float(elapsedTime)
-#if os(iOS)
-        bufConst.fEDR = Float((window?.screen.potentialEDRHeadroom)!)
+#if os(macOS)
+        bufConst.fEDR = Float(window?.screen?.maximumExtendedDynamicRangeColorComponentValue ?? 1.0)
+#else
+        bufConst.fEDR = Float(window?.screen.currentEDRHeadroom ?? 1.0)
 #endif
         
         _ = semaphore.wait(timeout: .distantFuture)
