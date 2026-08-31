@@ -104,7 +104,7 @@ class Renderer: MTKView, MTKViewDelegate {
 #endif
         
         _ = semaphore.wait(timeout: .distantFuture)
-        guard let cmdBuf = cmdQueue.makeCommandBuffer() else {log.error("Faild to get cmdBuf"); return}
+        guard let cmdBuf = cmdQueue.makeCommandBuffer() else {log.error("Faild to get cmdBuf"); semaphore.signal(); return}
         let semaphore = semaphore
         cmdBuf.addCompletedHandler{ cmdBuf in
             semaphore.signal()
