@@ -39,10 +39,12 @@ class Renderer: MTKView, MTKViewDelegate {
         guard let _queue = dev.makeCommandQueue() else {fatalError("failed to make queue")}
         cmdQueue = _queue
 
-        guard let lib = dev.makeDefaultLibrary() else {fatalError("failed to make lib")}
-        
-        vs = Renderer.makeGPUFunc(lib, name: "vs_quad")!
-        ps = Renderer.makeGPUFunc(lib, name: "ps_quad")!
+        let lib: MTLLibrary
+        do {lib = try dev.makeDefaultLibrary(bundle: .main)}
+        catch {fatalError("failed to make lib: \(error)")}
+
+        vs = Renderer.makeGPUFunc(lib, name: "vs_quad")
+        ps = Renderer.makeGPUFunc(lib, name: "ps_quad")
 
         psoGFX = Renderer.makeGFXPSO(dev: dev, label: "Quad", vs: vs, ps: ps,
                                      framePixFormat: pixelFormat, sampleCnt: sampleCnt)
@@ -65,9 +67,9 @@ class Renderer: MTKView, MTKViewDelegate {
         startFrameTimeStamp = CACurrentMediaTime()
     }
     
-    private static func makeGPUFunc(_ lib: MTLLibrary, name: String) -> MTLFunction? {
+    private static func makeGPUFunc(_ lib: MTLLibrary, name: String) -> MTLFunction {
         guard let bolb = lib.makeFunction(name: name)
-        else {log.error("Failed to create \(name)"); return nil}
+        else {fatalError("Failed to create MTLFunction \(name)")}
         log.info("MTLFunction \(name) created")
         return bolb
     }
@@ -81,10 +83,13 @@ class Renderer: MTKView, MTKViewDelegate {
         psoDesc.vertexFunction = vs
         psoDesc.fragmentFunction = ps
         psoDesc.colorAttachments[0].pixelFormat = framePixFormat
-        guard let pso = try? dev.makeRenderPipelineState(descriptor: psoDesc)
-        else {fatalError("Failed to create PSO \(label)")}
-        log.info("PSO: \(label) created")
-        return pso
+        do {
+            let pso = try dev.makeRenderPipelineState(descriptor: psoDesc)
+            log.info("PSO: \(label) created")
+            return pso
+        } catch {
+            fatalError("Failed to create PSO \(label): \(error)")
+        }
     }
     
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
@@ -108,7 +113,8 @@ class Renderer: MTKView, MTKViewDelegate {
         _ = semaphore.wait(timeout: .distantFuture)
         guard let cmdBuf = cmdQueue.makeCommandBuffer() else {log.error("Faild to get cmdBuf"); semaphore.signal(); return}
         let semaphore = semaphore
-        cmdBuf.addCompletedHandler{ cmdBuf in
+        cmdBuf.addCompletedHandler{ cb in
+            if let err = cb.error {log.error("cmdBuf failed: \(err.localizedDescription)")}
             semaphore.signal()
         }
         
