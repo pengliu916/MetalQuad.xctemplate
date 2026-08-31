@@ -7,6 +7,7 @@ import OSLog
 fileprivate let log = Logger(subsystem: "___PROJECTNAME___", category: "Renderer")
 fileprivate let frameBufCnt = 3
 fileprivate let pixelFormat = MTLPixelFormat.rgba16Float
+fileprivate let sampleCnt = 1
 
 class Renderer: MTKView, MTKViewDelegate {
     static let shared = Renderer()
@@ -15,7 +16,7 @@ class Renderer: MTKView, MTKViewDelegate {
     
     unowned var dev: MTLDevice
     let cmdQueue: MTLCommandQueue
-    var psoGFX: MTLRenderPipelineState!
+    let psoGFX: MTLRenderPipelineState
     let vs: MTLFunction
     let ps: MTLFunction
     let semaphore = DispatchSemaphore(value: frameBufCnt)
@@ -42,12 +43,16 @@ class Renderer: MTKView, MTKViewDelegate {
         
         vs = Renderer.makeGPUFunc(lib, name: "vs_quad")!
         ps = Renderer.makeGPUFunc(lib, name: "ps_quad")!
-        
+
+        psoGFX = Renderer.makeGFXPSO(dev: dev, label: "Quad", vs: vs, ps: ps,
+                                     framePixFormat: pixelFormat, sampleCnt: sampleCnt)
+
         super.init(frame: CGRect(), device: dev)
-        
+
         self.delegate = self
         self.device = dev
         self.colorPixelFormat = pixelFormat
+        self.sampleCount = sampleCnt
         
         // enable EDR support
         let caMtlLayer = self.layer as! CAMetalLayer
@@ -67,9 +72,9 @@ class Renderer: MTKView, MTKViewDelegate {
         return bolb
     }
     
-    private func makeGFXPSO(label: String,
-                            vs: MTLFunction, ps: MTLFunction,
-                            framePixFormat: MTLPixelFormat, sampleCnt: Int) -> MTLRenderPipelineState {
+    private static func makeGFXPSO(dev: MTLDevice, label: String,
+                                   vs: MTLFunction, ps: MTLFunction,
+                                   framePixFormat: MTLPixelFormat, sampleCnt: Int) -> MTLRenderPipelineState {
         let psoDesc = MTLRenderPipelineDescriptor()
         psoDesc.label = label
         psoDesc.rasterSampleCount = sampleCnt
@@ -84,9 +89,6 @@ class Renderer: MTKView, MTKViewDelegate {
     
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
         bufConst.fViewAspectRatio = Float(size.width/size.height)
-        if psoGFX == nil {
-            psoGFX = makeGFXPSO(label: "Quad", vs: vs, ps: ps, framePixFormat: view.colorPixelFormat, sampleCnt: view.sampleCount)
-        }
     }
     
     func draw(in view: MTKView) {
