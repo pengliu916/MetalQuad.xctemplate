@@ -5,19 +5,14 @@ import SwiftUI
 struct ContentView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
+            MetalKitView()
+                .ignoresSafeArea()
+            
             InterfaceView()
                 .padding(.all)
-                .zIndex(1)
-                .background(Color.black)
-                .opacity(0.8)
-                .allowsHitTesting(true)
-            
-            VStack {
-                MetalKitView()
-            }
+                .background(Color.black.opacity(0.8))
         }
         .persistentSystemOverlays(.hidden)
-        .ignoresSafeArea()
     }
 }
 
@@ -35,8 +30,6 @@ struct InterfaceView: View {
     }
 }
 
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
-    }
+#Preview {
+    ContentView()
 }
