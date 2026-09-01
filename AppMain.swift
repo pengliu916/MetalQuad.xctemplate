@@ -5,17 +5,21 @@ import SwiftUI
 @main
 struct ___FILEBASENAMEASIDENTIFIER___: App {
     var body: some Scene {
-        WindowGroup {
-            ContentView()
-                .preferredColorScheme(.dark)
 #if os(macOS)
-                .onDisappear{NSApplication.shared.terminate(self)}
-#else
-                .onAppear{UIApplication.shared.isIdleTimerDisabled = true}
-#endif
+        Window("___PROJECTNAME___", id: "main") {
+            content
         }
-#if os(macOS)
         .windowStyle(HiddenTitleBarWindowStyle())
+#else
+        WindowGroup {
+            content
+                .onAppear{UIApplication.shared.isIdleTimerDisabled = true}
+        }
 #endif
+    }
+
+    private var content: some View {
+        ContentView()
+            .preferredColorScheme(.dark)
     }
 }
