@@ -12,9 +12,8 @@ fileprivate let sampleCnt = 1
 class Renderer: MTKView, MTKViewDelegate {
     static let shared = Renderer()
     var param0: Float = 0.5
-    var viewAspectRatio: CGFloat = 1.0
     
-    unowned var dev: MTLDevice
+    let dev: MTLDevice
     let cmdQueue: MTLCommandQueue
     let psoGFX: MTLRenderPipelineState
     let vs: MTLFunction
@@ -52,26 +51,22 @@ class Renderer: MTKView, MTKViewDelegate {
         super.init(frame: CGRect(), device: dev)
 
         self.delegate = self
-        self.device = dev
         self.colorPixelFormat = pixelFormat
         self.sampleCount = sampleCnt
         
         // enable EDR support
         let caMtlLayer = self.layer as! CAMetalLayer
         caMtlLayer.wantsExtendedDynamicRangeContent = true
-        caMtlLayer.pixelFormat = pixelFormat
-        let name =  CGColorSpace.extendedLinearDisplayP3
-        let colorSpace = CGColorSpace(name: name)
-        caMtlLayer.colorspace = colorSpace
+        caMtlLayer.colorspace = CGColorSpace(name: CGColorSpace.extendedLinearDisplayP3)
         
         startFrameTimeStamp = CACurrentMediaTime()
     }
     
     private static func makeGPUFunc(_ lib: MTLLibrary, name: String) -> MTLFunction {
-        guard let bolb = lib.makeFunction(name: name)
+        guard let blob = lib.makeFunction(name: name)
         else {fatalError("Failed to create MTLFunction \(name)")}
         log.info("MTLFunction \(name) created")
-        return bolb
+        return blob
     }
     
     private static func makeGFXPSO(dev: MTLDevice, label: String,
@@ -111,7 +106,7 @@ class Renderer: MTKView, MTKViewDelegate {
 #endif
         
         _ = semaphore.wait(timeout: .distantFuture)
-        guard let cmdBuf = cmdQueue.makeCommandBuffer() else {log.error("Faild to get cmdBuf"); semaphore.signal(); return}
+        guard let cmdBuf = cmdQueue.makeCommandBuffer() else {log.error("Failed to get cmdBuf"); semaphore.signal(); return}
         let semaphore = semaphore
         cmdBuf.addCompletedHandler{ cb in
             if let err = cb.error {log.error("cmdBuf failed: \(err.localizedDescription)")}
@@ -125,8 +120,8 @@ class Renderer: MTKView, MTKViewDelegate {
         else {log.error("Failed to get encoder"); semaphore.signal(); return}
         
         rce.setRenderPipelineState(psoGFX)
-        rce.setVertexBytes(&bufConst, length: MemoryLayout<ConstBuf>.size, index: 0)
-        rce.setFragmentBytes(&bufConst, length: MemoryLayout<ConstBuf>.size, index: 0)
+        rce.setVertexBytes(&bufConst, length: MemoryLayout<ConstBuf>.stride, index: 0)
+        rce.setFragmentBytes(&bufConst, length: MemoryLayout<ConstBuf>.stride, index: 0)
         rce.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
         rce.endEncoding()
         
