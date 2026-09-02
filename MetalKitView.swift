@@ -4,22 +4,17 @@ import SwiftUI
 import MetalKit
 
 struct MetalKitView {
-    func makeCoordinator() -> Renderer {
-        return Renderer.shared
-    }
-    
-    func makeMTKView(_ context: MetalKitView.Context) -> MTKView {
-        return Renderer.shared
-    }
+    let param0: Float
 }
 
 #if os(macOS)
 extension MetalKitView : NSViewRepresentable {
     func makeNSView(context: Context) -> MTKView {
-        return makeMTKView(context)
+        return Renderer.shared
     }
     
     func updateNSView(_ nsView: MTKView, context: Context) {
+        Renderer.shared.param0 = param0
     }
 }
 #endif
@@ -27,10 +22,11 @@ extension MetalKitView : NSViewRepresentable {
 #if os(iOS)
 extension MetalKitView : UIViewRepresentable {
     func makeUIView(context: Context) -> MTKView {
-        return makeMTKView(context)
+        return Renderer.shared
     }
     
-    func updateUIView(_ nsView: MTKView, context: Context) {
+    func updateUIView(_ uiView: MTKView, context: Context) {
+        Renderer.shared.param0 = param0
     }
 }
 #endif
